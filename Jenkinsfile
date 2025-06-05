@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'ap-south-1'                      // Change if your region is different
-        S3_BUCKET = 'image-upload-devops-ravi '      // <-- Replace here
-        FUNCTION_NAME = 'imageUploadFuntion' // <-- Replace here
+        AWS_REGION = 'ap-south-1'
+        S3_BUCKET = 'image-upload-devops-ravi'
+        FUNCTION_NAME = 'imageUploadFunction'
     }
 
     stages {
@@ -17,8 +17,6 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                apt update || true
-                apt install zip -y || true
                 pip3 install --upgrade pip
                 pip3 install -r requirements.txt -t ./package
                 '''
@@ -40,9 +38,9 @@ pipeline {
             steps {
                 sh '''
                 aws lambda update-function-code \
-                  --function-name $FUNCTION_NAME \
-                  --zip-file fileb://function.zip \
-                  --region $AWS_REGION
+                    --function-name $FUNCTION_NAME \
+                    --zip-file fileb://function.zip \
+                    --region $AWS_REGION
                 '''
             }
         }
