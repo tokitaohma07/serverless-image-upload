@@ -4,24 +4,22 @@ pipeline {
     environment {
         AWS_REGION = 'ap-south-1'
         S3_BUCKET = 'image-upload-devops-ravi'
-        FUNCTION_NAME = 'imageUploadFunction'
-        VENV_DIR = '.venv'
+        LAMBDA_FUNCTION = 'imageUploadFuntion'
     }
 
     stages {
         stage('Clone Repo') {
             steps {
-                echo "✅ Cloned from GitHub"
+                echo '✅ Cloned from GitHub'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
-                python3 -m venv $VENV_DIR
-                source $VENV_DIR/bin/activate
-                $VENV_DIR/bin/pip install --upgrade pip
-                $VENV_DIR/bin/pip install -r requirements.txt -t ./package
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r requirements.txt
                 '''
             }
         }
@@ -29,10 +27,15 @@ pipeline {
         stage('Package Lambda Function') {
             steps {
                 sh '''
-                cp lambda_function.py package/
-                cd package
-                zip -r ../function.zip .
-                cd ..
+                    zip -r function.zip lambda_function.py
+                '''
+            }
+        }
+
+        stage('Upload to S3') {
+            steps {
+                sh '''
+                    aws s3 cp function.zip s3://$S3_BUCKET/function.zip --region $AWS_REGION
                 '''
             }
         }
@@ -40,10 +43,11 @@ pipeline {
         stage('Deploy to Lambda') {
             steps {
                 sh '''
-                aws lambda update-function-code \
-                    --function-name $FUNCTION_NAME \
-                    --zip-file fileb://function.zip \
-                    --region $AWS_REGION
+                    aws lambda update-function-code \
+                        --function-name $LAMBDA_FUNCTION \
+                        --s3-bucket $S3_BUCKET \
+                        --s3-key function.zip \
+                        --region $AWS_REGION
                 '''
             }
         }
