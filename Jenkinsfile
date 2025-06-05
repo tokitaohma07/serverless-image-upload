@@ -5,6 +5,7 @@ pipeline {
         AWS_REGION = 'ap-south-1'
         S3_BUCKET = 'image-upload-devops-ravi'
         FUNCTION_NAME = 'imageUploadFunction'
+        VENV_DIR = '.venv'
     }
 
     stages {
@@ -17,8 +18,10 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                pip3 install --upgrade pip
-                pip3 install -r requirements.txt -t ./package
+                python3 -m venv $VENV_DIR
+                source $VENV_DIR/bin/activate
+                $VENV_DIR/bin/pip install --upgrade pip
+                $VENV_DIR/bin/pip install -r requirements.txt -t ./package
                 '''
             }
         }
