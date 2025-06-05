@@ -3,48 +3,28 @@ pipeline {
 
     environment {
         AWS_REGION = 'ap-south-1'
-        S3_BUCKET = 'image-upload-devops-ravi'
-        FUNCTION_NAME = 'image-upload-function'
+        S3_BUCKET = 'your-s3-bucket-name'           // Replace with your actual S3 bucket name
+        FUNCTION_NAME = 'your-lambda-function-name' // Replace with your actual Lambda function name
     }
 
     stages {
         stage('Clone Repo') {
             steps {
                 echo "✅ Cloned from GitHub"
+                // SCM checkout is automatic before this stage in declarative pipeline with 'Pipeline script from SCM'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
-                sudo apt update
-                sudo apt install zip python3-pip -y
-                pip3 install --upgrade pip
-                pip3 install -r requirements.txt -t ./package
-                '''
-            }
-        }
+                # Update package list - non-fatal if fails
+                apt update || true
 
-        stage('Package Lambda Function') {
-            steps {
-                sh '''
-                cp lambda_function.py package/
-                cd package
-                zip -r ../function.zip .
-                cd ..
-                '''
-            }
-        }
+                # Install zip utility if not present - non-fatal if fails
+                apt install zip -y || true
 
-        stage('Deploy to Lambda') {
-            steps {
-                sh '''
-                aws lambda update-function-code \
-                  --function-name $FUNCTION_NAME \
-                  --zip-file fileb://function.zip \
-                  --region $AWS_REGION
-                '''
-            }
-        }
-    }
-}
+                # Upgrade pip
+                pip install --upgrade pip
+
+                # Install Python requirements to package directory
