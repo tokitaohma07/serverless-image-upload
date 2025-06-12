@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                echo '✅ Cloned from GitHub'
+                git url: 'https://github.com/tokitaohma07/serverless-image-upload.git', branch: 'master'
             }
         }
 
